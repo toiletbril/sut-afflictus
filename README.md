@@ -20,7 +20,7 @@
 ## Релизы
 | Версия |
 | ------- |
-| [**Последняя версия**](https://github.com/s0undw/sut-afflictus/releases/latest)   |
+| [**Последняя версия**](https://github.com/toiletbril/sut-afflictus/releases/latest)   |
 
 
 ##
