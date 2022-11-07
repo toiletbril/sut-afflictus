@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">SUT Afflictus</string>
+    <string name="NO_INTERNET">No internet connection</string>
+    <string name="TIMETABLE">Timetable for</string>
+    <string name="WEEK">week</string>
+    <string name="FROM">from</string>
+    <string name="TO">to</string>
+    <string name="TH">th</string>
+    <string name="WELCOME">Yo</string>
+    <string name="CHOOSEYOURGROUP">Please choose your group below.</string>
+    <string name="GROUP">Group</string>
+    <string name="READY">Ready</string>
+    <string name="ERROR">An error occurred</string>
+    <string name="NOCLASSES">No classes.</string>
+    <string name="PRACTICE_SHORT">prac</string>
+    <string name="LECTURE_SHORT">lec</string>
+    <string name="LABWORK_SHORT">lab</string>
+    <string name="NOT_CACHED_NOINTERNET">Not cached; no internet access.</string>
+    <string name="SELECTED">selected</string>
+    <string name="FIND_CLASSROOM">Find classroom</string>
+    <string name="MINUTES_UNTIL_END">minutes left</string>
+    <string name="SETTINGS">Settings</string>
+    <string name="CHANGE_GROUP">сhange group</string>
+    <string name="ABOUTAPP">About app</string>
+    <string name="ADDGROUP">Add another group</string>
+    <string name="WIP">Nothing to see here yet</string>
+</resources>
