@@ -24,7 +24,6 @@ TODO:
  1. Optimize month view more
  2. Navigation using destinations
  other:
- lk?
  teacher's timetable?
 ***/
 

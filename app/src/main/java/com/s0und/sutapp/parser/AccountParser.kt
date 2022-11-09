@@ -52,7 +52,7 @@ suspend fun getAccountData(username: String, password: String): Result<AccountDa
  * @throws IOException
  * when there is some problem with internet connection or site
  */
-suspend fun checkInCurrentPair(username: String, password: String, week: String): Result<Unit> {
+suspend fun checkInCurrentPair(username: String, password: String): Result<Unit> {
     try {
         val cookies = getLoginCookies(username, password)
 
@@ -63,6 +63,7 @@ suspend fun checkInCurrentPair(username: String, password: String, week: String)
                 .body()
 
         val checkInButtons = page.select("[id^=knop]")
+        val week = page.select("h3")[0].text().substring(30, 32)
 
         for (i in checkInButtons) {
             val id = i.attr("id").replace("knop", "")
