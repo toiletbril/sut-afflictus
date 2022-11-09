@@ -32,6 +32,11 @@ data class AccountData(
     val wifiCredentials: Pair<String, String>
 )
 
+/**
+ * @return [AccountData] for provided credentials
+ * @throws IOException
+ * when there is some problem with internet connection or site
+ */
 suspend fun getAccountData(username: String, password: String): Result<AccountData> {
     return try {
         val cookies = getLoginCookies(username, password)
@@ -45,6 +50,8 @@ suspend fun getAccountData(username: String, password: String): Result<AccountDa
 }
 
 /**
+ * @return [Result.success] ([Unit])
+ * when successfully checked in, or [Result.failure] ([Throwable])
  * @throws Throwable `NO_PAIR_BUTTON_AVAILABLE`
  * when there is no pairs that you can click on (to refresh or whatever)
  * @throws Throwable `CURRENT_PAIR_BUTTON_UNAVAILABLE`
