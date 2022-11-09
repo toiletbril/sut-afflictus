@@ -17,7 +17,6 @@ import com.s0und.sutapp.states.TimetableState
 import com.s0und.sutapp.ui.*
 import com.s0und.sutapp.ui.theme.*
 import com.s0und.sutapp.ui.timetableScreen.TimetableScreen
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 
 /***
@@ -60,7 +59,7 @@ class MainActivity: ComponentActivity() {
 
         settingsManager = SettingsManager(application)
         databaseState = DatabaseState(application)
-        timetableState = TimetableState(databaseState, settingsManager)
+        timetableState = TimetableState(databaseState, settingsManager, application)
 
         super.onCreate(savedInstanceState)
 
@@ -78,6 +77,12 @@ class MainActivity: ComponentActivity() {
                         val groupID = settingsManager.groupIDFlow.first()
                         val groupName = settingsManager.groupNameFlow.first()
 
+                        timetableState.getSharedPreferences {
+                            if (it.first != "0") {
+                                timetableState.loggedIn.value = true
+                            }
+                        }
+
                         timetableState.changeGroup(groupID, groupName)
                         timetableState.convertDatabaseToMapCompose()
 
@@ -87,7 +92,7 @@ class MainActivity: ComponentActivity() {
                 }
 
                 when (initialized) {
-                    -1 -> InitLoading()
+                    -1 -> InitScreenLoading()
                     0 -> InitScreen(InitState(settingsManager), timetableState)
                     1 -> TimetableScreen(timetableState)
                 }

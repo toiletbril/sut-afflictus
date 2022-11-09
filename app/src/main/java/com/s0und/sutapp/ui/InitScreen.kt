@@ -34,7 +34,7 @@ fun InitScreen (
         when (viewModel.uiState.value) {
             InitUIState.NotLoaded -> viewModel.getGroups()
             InitUIState.IsLoading -> {
-                InitLoading(modifier)
+                InitScreenLoading(modifier)
             }
             InitUIState.ContentIsLoaded -> {
                 GroupPicker(viewModel, modifier)
@@ -144,7 +144,7 @@ fun CheckIcon(viewModel: InitState, modifier: Modifier) {
 }
 
 @Composable
-fun InitLoading(modifier: Modifier = Modifier) {
+fun InitScreenLoading(modifier: Modifier = Modifier) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
@@ -153,13 +153,17 @@ fun InitLoading(modifier: Modifier = Modifier) {
             .fillMaxWidth()
             .background(MaterialTheme.colors.background),
     ) {
-                CircularProgressIndicator(modifier = modifier
-                    .size(50.dp),
-                    color = SlightBonchBlue,
-                    strokeWidth = 4.dp)
+                Loading()
     }
 }
 
+@Composable
+fun Loading(modifier: Modifier = Modifier) {
+    CircularProgressIndicator(modifier = modifier
+        .size(50.dp),
+        color = SlightBonchBlue,
+        strokeWidth = 4.dp)
+}
 
 @Composable
 fun InitErrorText(errorMsg: String, viewModel: InitState, modifier: Modifier) {

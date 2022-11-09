@@ -1,5 +1,6 @@
 package com.s0und.sutapp.states
 
+import android.content.Context
 import androidx.compose.material.*
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -8,8 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kizitonwose.calendar.core.atStartOfMonth
 import com.s0und.sutapp.data.*
-import com.s0und.sutapp.parser.UniSubject
-import com.s0und.sutapp.parser.getClassesForSemester
+import com.s0und.sutapp.parser.*
 import com.s0und.sutapp.ui.theme.BonchOrange
 import com.s0und.sutapp.ui.theme.BonchRed
 import com.s0und.sutapp.ui.theme.BonchYellow
@@ -27,12 +27,14 @@ sealed class TimetableUIState {
     object IsError: TimetableUIState()
 }
 
-class TimetableState(private val databaseState: DatabaseState, private val settingsManager: SettingsManager): ViewModel() {
+class TimetableState(private val databaseState: DatabaseState, private val settingsManager: SettingsManager, context: Context): ViewModel() {
     private val _uiState = mutableStateOf<TimetableUIState>(TimetableUIState.NotLoaded)
     val uiState: State<TimetableUIState>
         get() = _uiState
 
     val drawerState = mutableStateOf(DrawerState(DrawerValue.Closed))
+
+    val loggedIn = mutableStateOf(false)
 
     private val _uiTheme = mutableStateOf(0)
     val uiTheme: State<Int>
@@ -58,7 +60,63 @@ class TimetableState(private val databaseState: DatabaseState, private val setti
     val group3 : State<List<String>>
         get() = _group3
 
-    val a = group1.value
+    private val sharedPreferences = bgetEncryptedSharedPreferences(context)
+
+    fun logIn(login: String, password: String, callback: (Result<Unit>) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val check = checkCredentials(login, password)
+
+            if (check.isSuccess)
+                if (check.getOrNull()!!) {
+                    sharedPreferences.edit()
+                        .putString("login", login)
+                        .putString("pswd", password)
+                        .apply()
+                    callback.invoke(Result.success(Unit))
+                } else
+                    callback.invoke(Result.failure(Throwable("WRONG_PASSWORD")))
+
+            else callback.invoke(Result.failure(check.exceptionOrNull()!!))
+        }
+    }
+
+    fun logOut() {
+        if (loggedIn.value)
+            viewModelScope.launch(Dispatchers.IO) {
+                sharedPreferences.edit()
+                    .clear()
+                    .apply()
+                loggedIn.value = false
+            }
+    }
+
+    fun getSharedPreferences(callback: (Pair<String, String>) -> (Unit)) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val one = sharedPreferences.getString("login", "0")
+            val two = sharedPreferences.getString("pswd", "0")
+
+            callback.invoke(Pair(one!!, two!!))
+        }
+    }
+
+    fun getAccount(callback: (Result<AccountData>) -> (Unit)) {
+        getSharedPreferences {
+            viewModelScope.launch(Dispatchers.IO) {
+                callback.invoke(getAccountData(it.first, it.second))
+            }
+        }
+    }
+
+    fun checkIn(callback: (Result<Unit>) -> (Unit)) {
+        getSharedPreferences {
+            viewModelScope.launch(Dispatchers.IO) {
+                callback.invoke(checkInCurrentPair(it.first, it.second))
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterialApi::class)
+    val bottomSheetState = mutableStateOf(ModalBottomSheetValue.Hidden)
 
     suspend fun convertDatabaseToMap() {
         _mapOfDays.value = databaseState.readAllData(selectedGroupID.value)

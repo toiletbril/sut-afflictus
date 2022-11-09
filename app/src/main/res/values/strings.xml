@@ -26,6 +26,13 @@
     <string name="WIP">Nothing to see here yet</string>
     <string name="ACCOUNT">Account</string>
     <string name="LOGIN">Log in</string>
-    <string name="REMEMBERME">remember me</string>
+    <string name="REMEMBERME">Remember me</string>
     <string name="ROOTWARNING">TODO</string>
+    <string name="PASSWORD">password</string>
+    <string name="LOGINFIELD" translatable="false">e-mail</string>
+    <string name="PASSWORDFIELD" translatable="false">•••</string>
+    <string name="LOGGEDIN">You are logged in.</string>
+    <string name="WRONGPASSWORD">Wrong password.</string>
+    <string name="LOGOUT">Log out</string>
+    <string name="CHECKIN">Check in</string>
 </resources>

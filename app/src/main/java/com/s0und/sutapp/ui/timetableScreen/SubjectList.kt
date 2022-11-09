@@ -1,5 +1,8 @@
 package com.s0und.sutapp.ui.timetableScreen
 
+import android.os.Handler
+import android.os.Looper
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -7,11 +10,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -91,13 +96,65 @@ fun SubjectCard(uniSubject: UniSubject, viewModel: TimetableState, modifier: Mod
             }
 
             AnimatedVisibility(expanded || isClassNow) {
-                Row {
-                    SubjectDescription(uniSubject.classroom, modifier)
-                    Spacer(modifier.weight(1f))
-                    if (isClassNow) ClassTimeLeft(nowTime, classEndTime, modifier)
+                Row(
+                    verticalAlignment = Alignment.Bottom,
+                    modifier = modifier
+                        .padding(bottom = 4.dp)
+                ) {
+                    Column {
+                        Row {
+                            SubjectDescription(uniSubject.classroom, modifier)
+                            Spacer(modifier.weight(1f))
+                            if (isClassNow) ClassTimeLeft(nowTime, classEndTime, modifier)
+                        }
+                        if (viewModel.loggedIn.value && isClassNow)
+                            CheckInButton(viewModel, modifier)
+                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun CheckInButton(viewModel: TimetableState, modifier: Modifier) {
+    val checkedIn = remember { mutableStateOf(false) }
+    val ctx = LocalContext.current
+
+    Button(
+        onClick = {
+            viewModel.checkIn {
+                lateinit var text: String
+
+                if (it.isSuccess) {
+                    text = "Success!"
+                }
+
+                else {
+                    text = it.exceptionOrNull()!!.toString()
+                }
+
+                Handler(Looper.getMainLooper()).post {
+                    Toast.makeText(ctx, text, Toast.LENGTH_SHORT).show()
+                }
+            }
+        },
+        modifier = modifier
+            .fillMaxWidth()
+            .height(54.dp)
+            .padding(bottom = 12.dp, start = 16.dp, end = 16.dp),
+        shape = CircleShape,
+        enabled = !checkedIn.value,
+        elevation = ButtonDefaults.elevation(0.dp),
+        colors = ButtonDefaults.buttonColors(
+            backgroundColor = SlightBonchBlue
+        ),
+    ) {
+        Text(
+            text = stringResource(R.string.CHECKIN),
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colors.surface
+        )
     }
 }
 
@@ -106,7 +163,7 @@ fun ClassTimeLeft(now: LocalTime, end: LocalTime, modifier: Modifier) {
     val minutesLeft = (end.toSecondOfDay() - now.toSecondOfDay()).floorDiv(60)
     Text(
         modifier = modifier
-            .padding(end = 18.dp),
+            .padding(end = 18.dp, bottom = 0.dp),
         text = "$minutesLeft ${stringResource(R.string.MINUTES_UNTIL_END)}",
         fontWeight = FontWeight.Bold,
         color = MaterialTheme.colors.secondaryVariant,

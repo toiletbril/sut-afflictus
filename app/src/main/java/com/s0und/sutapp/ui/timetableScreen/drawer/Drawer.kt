@@ -1,7 +1,8 @@
-package com.s0und.sutapp.ui.timetableScreen
+package com.s0und.sutapp.ui.timetableScreen.drawer
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -10,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.s0und.sutapp.R
 import com.s0und.sutapp.data.openGithubURL
@@ -21,6 +23,8 @@ fun TimetableDrawer(
     viewModel: TimetableState,
     modifier: Modifier
 ) {
+    val ctx = LocalContext.current
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -30,7 +34,7 @@ fun TimetableDrawer(
             .padding(vertical = 64.dp)
     ) {
         Text(
-            text = stringResource(R.string.SETTINGS),
+            text = stringResource(R.string.ACCOUNT),
             color = MaterialTheme.colors.onSurface,
             style = MaterialTheme.typography.h5,
             fontWeight = FontWeight.ExtraBold,
@@ -38,12 +42,24 @@ fun TimetableDrawer(
                 .padding(bottom = 16.dp)
         )
 
+        Column (
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = modifier.height(300.dp)
+        ) {
+            AccountOptions(viewModel, modifier, ctx)
+        }
+
+        Spacer(modifier.weight(1f))
+//        Divider(
+//            modifier = modifier.padding(horizontal = 32.dp, vertical = 8.dp),
+//            color = MaterialTheme.colors.secondaryVariant,
+//            thickness = 1.dp
+//        )
         GroupSelector(viewModel, modifier)
 
         Spacer(modifier.weight(1f))
 
         Row {
-            val ctx = LocalContext.current
             Box (
                 modifier = modifier
                     .clickable { openGithubURL(ctx) }
@@ -65,7 +81,7 @@ fun TimetableDrawer(
                                 .padding(end = 12.dp, start = 4.dp)
                         )
                         Text(
-                            text = "1.1beta",
+                            text = "1.1 alpha",
                             color = MaterialTheme.colors.secondaryVariant,
                             style = MaterialTheme.typography.body2,
                         )
@@ -98,18 +114,19 @@ fun GroupChangeButton(groupID: String, groupName: String, viewModel: TimetableSt
             contentColor = BonchBlue
         ),
         enabled = isCurrentGroup,
+        shape = CircleShape,
         modifier = modifier
-            .padding(bottom = 8.dp)
+            .padding(bottom = 0.dp)
+            .requiredWidth(256.dp)
     ) {
         Text(
             text = text,
             color = BonchBlue,
             fontWeight = FontWeight.Bold,
             style = MaterialTheme.typography.body1,
+            textAlign = TextAlign.Center,
             modifier = modifier
-                .requiredWidth(256.dp)
-                .requiredHeight(36.dp)
-
+                .padding(horizontal = 10.dp)
         )
     }
 }

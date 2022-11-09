@@ -6,17 +6,19 @@ import org.jsoup.Connection
 import org.jsoup.Jsoup
 import java.io.EOFException
 import java.io.IOException
+import java.io.StringReader
 
 private const val userAgent         = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36 OPR/89.0.4447.104 (Edition Yx GX)"
 
 private const val noLoginReferrer   = "https://lk.sut.ru/cabinet?login=no"
 private const val referrer          = "https://lk.sut.ru/cabinet/"
 
-private const val loginUrl          =  "https://lk.sut.ru/cabinet/lib/autentificationok.php"
-private const val timetableUrl      =  "https://lk.sut.ru/cabinet/project/cabinet/forms/raspisanie.php"
-private const val messagesUrl       =  "https://lk.sut.ru/project/cabinet/forms/message.php"
-private const val filesUrl          =  "https://lk.sut.ru/project/cabinet/forms/files_group_pr.php"
-private const val wifiUrl           =  "https://lk.sut.ru/project/cabinet/forms/wifi.php"
+private const val loginUrl          = "https://lk.sut.ru/cabinet/lib/autentificationok.php"
+private const val profileUrl        = "https://lk.sut.ru/cabinet/project/cabinet/forms/profil.php"
+private const val timetableUrl      = "https://lk.sut.ru/cabinet/project/cabinet/forms/raspisanie.php"
+private const val messagesUrl       = "https://lk.sut.ru/project/cabinet/forms/message.php"
+private const val filesUrl          = "https://lk.sut.ru/project/cabinet/forms/files_group_pr.php"
+private const val wifiUrl           = "https://lk.sut.ru/project/cabinet/forms/wifi.php"
 
 data class Message(
     val date: String,
@@ -27,10 +29,35 @@ data class Message(
 )
 
 data class AccountData(
+    val accountInfo: Map<String, String>,
     val messages: List<Message>,
     val groupFiles: List<Message>,
     val wifiCredentials: Pair<String, String>
 )
+
+/**
+ * @return [Boolean]
+ * if provided credentials are valid
+ * @throws IOException
+ * when there is some problem with internet connection or site
+ */
+suspend fun checkCredentials(username: String, password: String): Result<Boolean> {
+    return try {
+        val cookies = Jsoup.connect(noLoginReferrer).execute().cookies()
+
+        val page = Jsoup.connect(loginUrl)
+            .header("user-agent", userAgent)
+            .data("users", username)
+            .data("parole", password)
+            .cookies(cookies)
+            .method(Connection.Method.POST)
+            .execute()
+
+        Result.success(page.body() == "1")
+    } catch (e: IOException) {
+        Result.failure(e)
+    }
+}
 
 /**
  * @return [AccountData] for provided credentials
@@ -41,11 +68,12 @@ suspend fun getAccountData(username: String, password: String): Result<AccountDa
     return try {
         val cookies = getLoginCookies(username, password)
 
+        val accountInfo = getAccountInfo(cookies)
         val messageList = parseMessages(cookies)
         val groupFileList = parseGroupFiles(cookies)
         val wifiDataPair = parseWifiPage(cookies)
 
-        Result.success(AccountData(messageList, groupFileList, wifiDataPair))
+        Result.success(AccountData(accountInfo, messageList, groupFileList, wifiDataPair))
     } catch (e: IOException) { Result.failure(e) }
 }
 
@@ -270,4 +298,18 @@ private fun parseWifiPage(cookies: Map<String, String>): Pair<String, String> {
     val wifiPassword = page.select("p")[3].child(0).text()
 
     return Pair(wifiLogin, wifiPassword)
+}
+
+private fun getAccountInfo(cookies: Map<String, String>): Map<String, String> {
+    val page = Jsoup.connect(profileUrl)
+        .header("user-agent", userAgent)
+        .cookies(cookies)
+        .get().body()
+
+    val tableOne = page.select(".profil")[0]
+    val name = tableOne.select("tr")[1].child(1).text()
+    val tableTwo = page.select(".profil")[1]
+    val groupName = tableTwo.select("tr")[6].child(1).text()
+
+    return mapOf(Pair("name", name), Pair("group", groupName))
 }
