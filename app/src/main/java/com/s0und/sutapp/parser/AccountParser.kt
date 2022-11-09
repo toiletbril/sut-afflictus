@@ -49,29 +49,33 @@ suspend fun getAccountData(username: String, password: String): Result<AccountDa
  * when there is no pairs that you can click on (to refresh or whatever)
  * @throws Throwable `CURRENT_PAIR_BUTTON_UNAVAILABLE`
  * when there is currently a pair going on and the teacher haven't started it yet
+ * @throws IOException
+ * when there is some problem with internet connection or site
  */
 suspend fun checkInCurrentPair(username: String, password: String, week: String): Result<Unit> {
-    val cookies = getLoginCookies(username, password)
+    try {
+        val cookies = getLoginCookies(username, password)
 
-    val page = Jsoup.connect(timetableUrl)
-        .header("user-agent", userAgent)
-        .cookies(cookies)
-        .get()
-        .body()
+        val page = Jsoup.connect(timetableUrl)
+                .header("user-agent", userAgent)
+                .cookies(cookies)
+                .get()
+                .body()
 
-    val checkInButtons = page.select("[id^=knop]")
+        val checkInButtons = page.select("[id^=knop]")
 
-    for (i in checkInButtons) {
-        val id = i.attr("id").replace("knop", "")
-        val buttonMessage = i.child(0)
+        for (i in checkInButtons) {
+            val id = i.attr("id").replace("knop", "")
+            val buttonMessage = i.child(0)
 
-        if (buttonMessage.text().lowercase() == "начать занятие")
-            return checkInPair(id, week, cookies)
-        else
-        if (buttonMessage.attr("style") == "color: gray;")
-            return Result.failure(Throwable("CURRENT_PAIR_BUTTON_UNAVAILABLE"))
-    }
-    return Result.failure(Throwable("NO_PAIR_BUTTON_AVAILABLE"))
+            if (buttonMessage.text().lowercase() == "начать занятие")
+                return checkInPair(id, week, cookies)
+            else
+            if (buttonMessage.attr("style") == "color: gray;")
+                return Result.failure(Throwable("CURRENT_PAIR_BUTTON_UNAVAILABLE"))
+        }
+        return Result.failure(Throwable("NO_PAIR_BUTTON_AVAILABLE"))
+    } catch (e: IOException) { return Result.failure(e) }
 }
 
 /**
