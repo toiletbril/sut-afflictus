@@ -40,7 +40,6 @@ fun InitScreen (
                 GroupPicker(viewModel, modifier)
             }
             InitUIState.GroupPicked -> {
-                viewModel.changeState(InitUIState.NotLoaded)
                 timetableState.loadTimetable()
             }
             InitUIState.IsError -> {
@@ -85,7 +84,7 @@ fun GroupPicker(viewModel: InitState, modifier: Modifier) {
                 modifier = modifier.padding(start = 8.dp, end = 8.dp, top = 4.dp),
                 text = stringResource(R.string.CHOOSEYOURGROUP),
                 style = MaterialTheme.typography.body1,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colors.secondaryVariant
             )

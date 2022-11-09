@@ -27,6 +27,7 @@ import com.kizitonwose.calendar.core.WeekDay
 import com.kizitonwose.calendar.core.WeekDayPosition
 import com.s0und.sutapp.data.NoRippleInteractionSource
 import com.s0und.sutapp.states.TimetableState
+import com.s0und.sutapp.states.TimetableUIState
 import com.s0und.sutapp.ui.theme.BonchBlue
 import com.s0und.sutapp.ui.theme.SlightBonchBlue
 import com.s0und.sutapp.ui.timetableScreen.PairCountIndicatorRow
@@ -77,7 +78,6 @@ fun WeeklySelector(viewModel: TimetableState, modifier: Modifier) {
 
 @Composable
 private fun WeeklySelectorDay(day: WeekDay, today: Boolean, selected: Boolean, inactive: Boolean, screenWidth: Dp, noRipple: NoRippleInteractionSource , viewModel: TimetableState, modifier: Modifier, click: (LocalDate) -> Unit) {
-
     val colors = MaterialTheme.colors
 
     val colorAnimation = animateColorAsState(

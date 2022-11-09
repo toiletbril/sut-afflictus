@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.s0und.sutapp.R
 import com.s0und.sutapp.data.getFormattedWeek
 import com.s0und.sutapp.states.TimetableState
+import com.s0und.sutapp.states.TimetableUIState
 import com.s0und.sutapp.ui.timetableScreen.selector.MonthlySelector
 import com.s0und.sutapp.ui.timetableScreen.selector.WeeklySelector
 import kotlinx.coroutines.launch
@@ -94,7 +95,7 @@ fun PairCountIndicatorRow(day: LocalDate, viewModel: TimetableState, modifier: M
 
         var colors by remember { mutableStateOf(listOf<Color>()) }
 
-        LaunchedEffect(Unit) {
+        LaunchedEffect(viewModel.mapOfDays.value) {
             viewModel.getPairColors(day) {
                 colors = it
             }

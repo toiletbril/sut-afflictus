@@ -60,7 +60,11 @@ class TimetableState(private val databaseState: DatabaseState, private val setti
 
     val a = group1.value
 
-    fun convertDatabaseToMap() {
+    suspend fun convertDatabaseToMap() {
+        _mapOfDays.value = databaseState.readAllData(selectedGroupID.value)
+    }
+
+    fun convertDatabaseToMapCompose() {
         viewModelScope.launch(Dispatchers.IO) {
             _mapOfDays.value = databaseState.readAllData(selectedGroupID.value)
         }
@@ -136,7 +140,7 @@ class TimetableState(private val databaseState: DatabaseState, private val setti
     val errorMessage: State<String>
         get() = _errorMessage
 
-    fun getPairColors(day: LocalDate, callback: (List<Color>) -> Unit) {
+    fun getPairColors(day: LocalDate = selectedDayDate.value, callback: (List<Color>) -> Unit) {
             viewModelScope.launch(Dispatchers.IO) {
 
                 val id = "${selectedGroupID.value}$day"
@@ -166,12 +170,7 @@ class TimetableState(private val databaseState: DatabaseState, private val setti
     }
 
     fun forceUpdate(groupID: String = selectedGroupID.value) {
-        println(this)
         viewModelScope.launch(Dispatchers.IO) {
-
-            updateDate()
-            updateTime()
-
             if (uiState.value != TimetableUIState.IsLoading) {
                 _uiState.value = TimetableUIState.IsLoading
 
@@ -188,6 +187,8 @@ class TimetableState(private val databaseState: DatabaseState, private val setti
                     }
                 }
             }
+        updateDate()
+        updateTime()
         }
 
 
@@ -201,16 +202,13 @@ class TimetableState(private val databaseState: DatabaseState, private val setti
 
             val readDay = mapOfDays.value[dayID]
 
-            if (readDay != null)
-                if (readDay.isNotEmpty()) {
-                    _classesForDay.value = UniDay(dayID, readDay)
-                } else {
-                    val emptyDay = UniDay(dayID, emptyList())
-                    _classesForDay.value = emptyDay
-                }
+            if (readDay != null) {
+                println("founds !!!!")
+                _classesForDay.value = UniDay(dayID, readDay)
+            }
             else {
+                println("emty !!!!")
                 val emptyDay = UniDay(dayID, emptyList())
-                databaseState.addDay(emptyDay)
                 _classesForDay.value = emptyDay
             }
             _uiState.value = TimetableUIState.ContentIsLoaded

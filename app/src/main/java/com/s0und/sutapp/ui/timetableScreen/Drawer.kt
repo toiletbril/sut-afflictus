@@ -38,27 +38,9 @@ fun TimetableDrawer(
                 .padding(bottom = 16.dp)
         )
 
-        //GroupSelector(viewModel, modifier)
-
-        Text(
-            text = stringResource(R.string.WIP) + " uwu",
-            color = MaterialTheme.colors.secondaryVariant,
-            style = MaterialTheme.typography.body1,
-        )
+        GroupSelector(viewModel, modifier)
 
         Spacer(modifier.weight(1f))
-
-//        TextButton(
-//            onClick = { /*TODO*/ },
-//            colors = ButtonDefaults.outlinedButtonColors(
-//                contentColor = BonchBlue
-//            )
-//        ) {
-//            Text(
-//                text = stringResource(R.string.ABOUTAPP),
-//                color = MaterialTheme.colors.secondaryVariant
-//            )
-//        }
 
         Row {
             val ctx = LocalContext.current
@@ -79,12 +61,11 @@ fun TimetableDrawer(
                             text = "Github",
                             color = BonchBlue,
                             style = MaterialTheme.typography.body2,
-                            //fontWeight = FontWeight.SemiBold,
                             modifier = modifier
                                 .padding(end = 12.dp, start = 4.dp)
                         )
                         Text(
-                            text = "1.0beta",
+                            text = "1.1beta",
                             color = MaterialTheme.colors.secondaryVariant,
                             style = MaterialTheme.typography.body2,
                         )
