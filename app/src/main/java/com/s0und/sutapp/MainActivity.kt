@@ -19,7 +19,6 @@ import com.s0und.sutapp.ui.theme.*
 import com.s0und.sutapp.ui.timetableScreen.TimetableScreen
 import kotlinx.coroutines.flow.first
 
-
 /***
 TODO:
  1. Optimize month view more

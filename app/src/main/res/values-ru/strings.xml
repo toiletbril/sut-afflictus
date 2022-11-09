@@ -24,4 +24,8 @@
     <string name="ABOUTAPP">О программе</string>
     <string name="ADDGROUP">Добавить новую группу</string>
     <string name="WIP">Здесь пока ничего нет</string>
+    <string name="ACCOUNT">Аккаунт</string>
+    <string name="LOGIN">Войти</string>
+    <string name="REMEMBERME">запомнить пароль</string>
+    <string name="ROOTWARNING">TODO</string>
 </resources>

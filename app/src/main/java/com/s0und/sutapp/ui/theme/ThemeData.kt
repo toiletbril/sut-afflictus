@@ -22,12 +22,10 @@ val Grey700 = Color(0xFFBE6B21)
 val Grey100 = Color(0xFFECECEC)
 val Grey50 = Color(0xFFF8F9FA)
 
-
 val WhiteSubColor = Color(0xFF828B92)
 val DarkSubColor = Color(0xFF555B61)
 
 val White = Color(0xFFFBF2FD)
-
 
 val Shapes = androidx.compose.material.Shapes(
     small = RoundedCornerShape(8.dp),

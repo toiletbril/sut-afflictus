@@ -24,4 +24,8 @@
     <string name="ABOUTAPP">About app</string>
     <string name="ADDGROUP">Add another group</string>
     <string name="WIP">Nothing to see here yet</string>
+    <string name="ACCOUNT">Account</string>
+    <string name="LOGIN">Log in</string>
+    <string name="REMEMBERME">remember me</string>
+    <string name="ROOTWARNING">TODO</string>
 </resources>

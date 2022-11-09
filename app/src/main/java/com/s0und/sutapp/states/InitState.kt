@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.s0und.sutapp.data.SettingsManager
 import com.s0und.sutapp.parser.UniGroup
-import com.s0und.sutapp.parser.bgetGroups
+import com.s0und.sutapp.parser.getGroups
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -78,8 +78,8 @@ class InitState(private val settingsManager: SettingsManager): ViewModel() {
     }
 
     fun requestGroups() {
-        val groupRequester = viewModelScope.launch(Dispatchers.IO) {
-            bgetGroups() {
+        viewModelScope.launch(Dispatchers.IO) {
+            getGroups() {
                 if (it.isSuccess) {
                     val value = it.getOrNull()!!
                     _groups.value = value

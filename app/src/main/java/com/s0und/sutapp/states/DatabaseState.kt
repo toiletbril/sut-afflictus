@@ -24,14 +24,12 @@ class DatabaseState(application: Application): AndroidViewModel(application) {
         val mapOfDays = mutableMapOf<String, List<UniSubject>>()
 
         for (i in listOfDays) {
-            val id = i.id
-            val subjects = i.subjects
-            mapOfDays[id] = subjects
+            mapOfDays[i.id] = i.subjects
         }
         return mapOfDays
     }
 
-    fun readDay(Id: String): UniDay? {
+    fun readDay(Id: String): UniDay {
         return repository.readDay(Id)
     }
 }
