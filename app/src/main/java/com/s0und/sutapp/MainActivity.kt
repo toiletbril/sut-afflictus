@@ -35,10 +35,6 @@ class MainActivity: ComponentActivity() {
     private lateinit var _broadcastReceiver: BroadcastReceiver
 
     override fun onStart() {
-        settingsManager = SettingsManager(application)
-        databaseState = DatabaseState(application)
-        timetableState = TimetableState(databaseState, settingsManager)
-
         _broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(ctx: Context?, intent: Intent) {
                 if (intent.action!!.compareTo(Intent.ACTION_TIME_TICK) == 0) {
@@ -60,6 +56,10 @@ class MainActivity: ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        settingsManager = SettingsManager(application)
+        databaseState = DatabaseState(application)
+        timetableState = TimetableState(databaseState, settingsManager)
 
         super.onCreate(savedInstanceState)
 
@@ -96,7 +96,9 @@ class MainActivity: ComponentActivity() {
 
     @Suppress("Senseless_Comparison")
     override fun onStop() {
-        if (_broadcastReceiver != null) unregisterReceiver(_broadcastReceiver)
+        if (_broadcastReceiver != null)
+            unregisterReceiver(_broadcastReceiver)
+
         super.onStop()
     }
 }

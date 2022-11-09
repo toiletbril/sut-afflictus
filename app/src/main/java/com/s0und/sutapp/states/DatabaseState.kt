@@ -29,7 +29,7 @@ class DatabaseState(application: Application): AndroidViewModel(application) {
         return mapOfDays
     }
 
-    fun readDay(Id: String): UniDay {
+    fun readDay(Id: String): UniDay? {
         return repository.readDay(Id)
     }
 }

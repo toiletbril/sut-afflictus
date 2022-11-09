@@ -4,7 +4,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.s0und.sutapp.R
@@ -35,15 +34,15 @@ val Shapes = androidx.compose.material.Shapes(
 
 val Typography = androidx.compose.material.Typography(
     defaultFontFamily = FontFamily(
-        Font(R.font.nunitosans),
-        Font(R.font.nunitosans_italic, style = FontStyle.Italic),
-        Font(R.font.nunitosans_light, weight = FontWeight.Light),
-        Font(R.font.nunitosans_bold, weight = FontWeight.Bold),
+        Font(R.font.inter),
+        //Font(R.font.montserrat, style = FontStyle.Italic),
+        Font(R.font.inter_light, weight = FontWeight.Light),
+        Font(R.font.inter_bold, weight = FontWeight.Bold),
+        Font(R.font.inter_semibold, weight = FontWeight.SemiBold),
+        Font(R.font.inter_extrabold, weight = FontWeight.ExtraBold),
+        Font(R.font.inter_medium, weight = FontWeight.Medium),
 
         Font(R.font.nunito_black, weight = FontWeight.Black),
-        Font(R.font.nunito_medium, weight = FontWeight.Medium),
-        Font(R.font.nunitosans_semibold, weight = FontWeight.SemiBold),
-        Font(R.font.nunitosans_extrabold, weight = FontWeight.ExtraBold)
     )
 
 )

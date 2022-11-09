@@ -45,7 +45,7 @@ class DayRepository(private val uniDayDao: UniDayDao) {
         uniDayDao.addDay(day)
     }
 
-    fun readDay(Id: String): UniDay {
+    fun readDay(Id: String): UniDay? {
         return uniDayDao.readDay(Id)
     }
 

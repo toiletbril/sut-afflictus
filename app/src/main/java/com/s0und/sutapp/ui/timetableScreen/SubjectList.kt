@@ -125,13 +125,13 @@ fun ClassSchedule(classSchedule1: String, classSchedule2: String, modifier: Modi
             Text (
                 text = classSchedule1,
                 style = MaterialTheme.typography.body2,
-                fontWeight = FontWeight.ExtraBold,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colors.secondaryVariant
             )
             Text (
                 text = classSchedule2,
                 style = MaterialTheme.typography.body2,
-                fontWeight = FontWeight.ExtraBold,
+                fontWeight = FontWeight.Bold,
                 modifier = modifier.padding(top = 2.dp),
                 color = MaterialTheme.colors.secondaryVariant
             )
@@ -155,7 +155,7 @@ fun SubjectInfo(
         Text (
             text = "$subjectName, $classRoom",
             style = MaterialTheme.typography.subtitle1,
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.Bold,
             color = if (isClassNow) MaterialTheme.colors.primaryVariant else if (classTodayAndEnded) MaterialTheme.colors.secondaryVariant else MaterialTheme.colors.onSurface,
             modifier = modifier.requiredWidth(205.dp)
         )
@@ -165,7 +165,7 @@ fun SubjectInfo(
                 .requiredWidth(145.dp),
             text = teacherName,
             style = MaterialTheme.typography.body2,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.Medium,
             color = MaterialTheme.colors.secondaryVariant
         )
     } }

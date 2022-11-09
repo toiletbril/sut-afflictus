@@ -166,7 +166,7 @@ class TimetableState(private val databaseState: DatabaseState, private val setti
     }
 
     fun forceUpdate(groupID: String = selectedGroupID.value) {
-
+        println(this)
         viewModelScope.launch(Dispatchers.IO) {
 
             updateDate()
@@ -206,7 +206,6 @@ class TimetableState(private val databaseState: DatabaseState, private val setti
                     _classesForDay.value = UniDay(dayID, readDay)
                 } else {
                     val emptyDay = UniDay(dayID, emptyList())
-                    databaseState.addDay(emptyDay)
                     _classesForDay.value = emptyDay
                 }
             else {

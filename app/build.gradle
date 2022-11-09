@@ -21,8 +21,8 @@ android {
         applicationId "com.s0und.sutapp"
         minSdk 26
         targetSdk 33
-        versionCode 11
-        versionName "s0und621.1.0beta"
+        versionCode 12
+        versionName "s0und621.1.1beta"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

@@ -18,7 +18,7 @@
     <string name="NOT_CACHED_NOINTERNET">Не закешировано; нет доступа к интернету</string>
     <string name="SELECTED">выбрана</string>
     <string name="FIND_CLASSROOM">Найти аудиторию</string>
-    <string name="MINUTES_UNTIL_END">минут до конца</string>
+    <string name="MINUTES_UNTIL_END">минут осталось</string>
     <string name="SETTINGS">Настройки</string>
     <string name="CHANGE_GROUP">сменить группу</string>
     <string name="ABOUTAPP">О программе</string>
