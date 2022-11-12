@@ -27,7 +27,6 @@ import com.s0und.sutapp.states.TimetableState
 import com.s0und.sutapp.ui.theme.BonchBlue
 import com.s0und.sutapp.ui.theme.SlightBonchBlue
 import com.s0und.sutapp.ui.timetableScreen.PairCountIndicatorRow
-import com.s0und.sutapp.ui.timetableScreen.SelectedMonthTitle
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -35,73 +34,78 @@ import java.time.format.TextStyle
 import java.util.*
 
 @Composable
-fun MonthlySelector(viewModel: TimetableState, modifier: Modifier) {
+fun MonthlySelector(viewModel: TimetableState) {
 
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
 
     val noRipple = NoRippleInteractionSource()
 
-    val firstDayOfWeek = remember { DayOfWeek.MONDAY }
-    val daysOfWeek = daysOfWeek(firstDayOfWeek)
-
     val state = rememberCalendarState(
         startMonth = YearMonth.from(viewModel.startDate),
         endMonth = YearMonth.from(viewModel.endDate),
         firstVisibleMonth = YearMonth.from(viewModel.getfirstVisibleWeekDate()),
-        firstDayOfWeek = firstDayOfWeek,
+        firstDayOfWeek = DayOfWeek.MONDAY,
         outDateStyle = OutDateStyle.EndOfGrid
     )
 
-    SelectedMonthTitle(state.firstVisibleMonth.yearMonth, modifier)
+    LaunchedEffect(state.firstVisibleMonth.yearMonth) {
+        viewModel.changeSelectedDate(state.firstVisibleMonth.yearMonth)
+    }
+
 
     HorizontalCalendar(
-        modifier = modifier.requiredHeight(400.dp),
+        modifier = Modifier.requiredHeight(400.dp),
         calendarScrollPaged = true,
         state = state,
         dayContent = { day ->
             MonthlySelectorDay(day,
-                today = day.date == viewModel.currentDate.value,
-                inactive = day.position == DayPosition.OutDate || day.position == DayPosition.InDate,
-                sunday = day.date.dayOfWeek.value == 7,
                 screenWidth,
                 viewModel,
                 noRipple,
-                modifier
             ) {
                 viewModel.changeSelectedDay(it)
             }
         },
-        monthHeader = { MonthHeader(daysOfWeek, modifier) }
+        monthHeader = {
+            MonthHeader(daysOfWeek(DayOfWeek.MONDAY)) }
     )
 }
 
 @Composable
 private fun MonthHeader(
     daysOfWeek: List<DayOfWeek>,
-    modifier: Modifier
 ) {
-    Row(modifier.fillMaxWidth()) {
+    Row(Modifier.fillMaxWidth()) {
         for (day in daysOfWeek) {
             Text(
-                modifier = modifier.weight(1f),
+                modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colors.secondaryVariant,
-                fontWeight = FontWeight.Bold,
-                text = day.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
+                fontWeight = FontWeight.Medium,
+                text = day.getDisplayName(TextStyle.SHORT, Locale.getDefault()).lowercase(),
             )
         }
     }
 }
 
 @Composable
-private fun MonthlySelectorDay(day: CalendarDay, today: Boolean, inactive: Boolean, sunday: Boolean, screenWidth: Dp, viewModel: TimetableState, noRipple: NoRippleInteractionSource, modifier: Modifier, click: (LocalDate) -> Unit) {
+private fun MonthlySelectorDay(
+    day: CalendarDay,
+    screenWidth: Dp,
+    viewModel: TimetableState,
+    noRipple: NoRippleInteractionSource,
+    click: (LocalDate) -> Unit) {
 
     val colors = MaterialTheme.colors
 
-    val selected = day.date == viewModel.selectedDayDate.value
+    val inactive = day.position == DayPosition.OutDate || day.position == DayPosition.InDate
+    val sunday = day.date.dayOfWeek.value == 7
 
-    val colorAnimation = animateColorAsState(
+    val today by remember { derivedStateOf { day.date == viewModel.currentDate.value } }
+    val selected by remember { derivedStateOf { day.date == viewModel.selectedDayDate.value } }
+
+    val colorAnimation by animateColorAsState(
         if (!selected) colors.background else SlightBonchBlue,
         tween(100, 0, LinearEasing)
     )
@@ -114,25 +118,25 @@ private fun MonthlySelectorDay(day: CalendarDay, today: Boolean, inactive: Boole
                 colors = ButtonDefaults
                     .buttonColors(
                         contentColor = colors.onSurface,
-                        backgroundColor = colorAnimation.value,
+                        backgroundColor = colorAnimation,
                         disabledContentColor = colors.primary,
-                        disabledBackgroundColor = colorAnimation.value
+                        disabledBackgroundColor = colorAnimation
                     ),
                 elevation = ButtonDefaults.elevation(0.dp),
                 border = BorderStroke(4.dp, if (today) BonchBlue else Color.Transparent),
                 shape = CircleShape,
-                enabled = if (inactive) false else !selected, //&& !isSunday,
+                enabled = if (inactive) false else !selected,
                 interactionSource = noRipple,
-                modifier = modifier
+                modifier = Modifier
                     .size(58.dp)
                     .width(screenWidth / 9)
             ) {
                 Text(
                     text = day.date.dayOfMonth.toString(),
                     color = if (inactive || sunday) colors.secondaryVariant else if (selected) colors.surface else colors.onSurface,
-                    fontWeight = if (inactive) FontWeight.Normal else FontWeight.ExtraBold,
+                    fontWeight = if (inactive) FontWeight.Normal else FontWeight.Bold,
                 )
             }
-        if (!inactive) PairCountIndicatorRow(day.date, viewModel, modifier)
+        if (!inactive) PairCountIndicatorRow(day.date, viewModel)
     }
 }

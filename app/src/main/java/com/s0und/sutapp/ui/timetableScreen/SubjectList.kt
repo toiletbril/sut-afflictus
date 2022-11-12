@@ -4,20 +4,20 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -118,24 +118,39 @@ fun SubjectCard(uniSubject: UniSubject, viewModel: TimetableState, modifier: Mod
 
 @Composable
 fun CheckInButton(viewModel: TimetableState, modifier: Modifier) {
-    val checkedIn = remember { mutableStateOf(false) }
+    var checkedIn by remember { mutableStateOf(false) }
+    var enabled by remember { mutableStateOf(true) }
     val ctx = LocalContext.current
 
-    Button(
+    val color = animateColorAsState(
+        if (!checkedIn) MaterialTheme.colors.primaryVariant
+        else MaterialTheme.colors.secondaryVariant
+    )
+
+    OutlinedButton(
         onClick = {
+
+            enabled = false
+
             viewModel.checkIn {
                 lateinit var text: String
 
                 if (it.isSuccess) {
-                    text = "Success!"
+                    checkedIn = true
                 }
 
                 else {
-                    text = it.exceptionOrNull()!!.toString()
-                }
-
-                Handler(Looper.getMainLooper()).post {
-                    Toast.makeText(ctx, text, Toast.LENGTH_SHORT).show()
+                    text = it.exceptionOrNull()?.message ?: "Unknown Error"
+                    when (text) {
+                        "NO_PAIR_BUTTON_AVAILABLE" -> checkedIn = true
+                        "CURRENT_PAIR_BUTTON_UNAVAILABLE" -> {
+                            enabled = true
+                            Handler(Looper.getMainLooper()).post {
+                                Toast.makeText(ctx, ctx.getString(R.string.PAIRNOTSTARTED), Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                        else -> enabled = true
+                    }
                 }
             }
         },
@@ -144,17 +159,26 @@ fun CheckInButton(viewModel: TimetableState, modifier: Modifier) {
             .height(54.dp)
             .padding(bottom = 12.dp, start = 16.dp, end = 16.dp),
         shape = CircleShape,
-        enabled = !checkedIn.value,
+        enabled = enabled,
         elevation = ButtonDefaults.elevation(0.dp),
-        colors = ButtonDefaults.buttonColors(
-            backgroundColor = SlightBonchBlue
-        ),
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = BonchBlue,
+            disabledContentColor = MaterialTheme.colors.secondaryVariant
+        )
     ) {
         Text(
             text = stringResource(R.string.CHECKIN),
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colors.surface
+            fontWeight = FontWeight.SemiBold,
+            color = color.value
         )
+        AnimatedVisibility(checkedIn) {
+            Icon(
+                painter = painterResource(R.drawable.checkicon),
+                contentDescription = "Check icon",
+                tint = color.value,
+                modifier = modifier.padding(start = 8.dp)
+            )
+        }
     }
 }
 
@@ -163,9 +187,9 @@ fun ClassTimeLeft(now: LocalTime, end: LocalTime, modifier: Modifier) {
     val minutesLeft = (end.toSecondOfDay() - now.toSecondOfDay()).floorDiv(60)
     Text(
         modifier = modifier
-            .padding(end = 18.dp, bottom = 0.dp),
+            .padding(end = 18.dp),
         text = "$minutesLeft ${stringResource(R.string.MINUTES_UNTIL_END)}",
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.SemiBold,
         color = MaterialTheme.colors.secondaryVariant,
         style = MaterialTheme.typography.body2,
     )
@@ -182,13 +206,13 @@ fun ClassSchedule(classSchedule1: String, classSchedule2: String, modifier: Modi
             Text (
                 text = classSchedule1,
                 style = MaterialTheme.typography.body2,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colors.secondaryVariant
             )
             Text (
                 text = classSchedule2,
                 style = MaterialTheme.typography.body2,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 modifier = modifier.padding(top = 2.dp),
                 color = MaterialTheme.colors.secondaryVariant
             )
@@ -212,13 +236,13 @@ fun SubjectInfo(
         Text (
             text = "$subjectName, $classRoom",
             style = MaterialTheme.typography.subtitle1,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
             color = if (isClassNow) MaterialTheme.colors.primaryVariant else if (classTodayAndEnded) MaterialTheme.colors.secondaryVariant else MaterialTheme.colors.onSurface,
             modifier = modifier.requiredWidth(205.dp)
         )
         Text (
             modifier = modifier
-                .padding(top = 4.dp)
+                .padding(top = 2.dp)
                 .requiredWidth(145.dp),
             text = teacherName,
             style = MaterialTheme.typography.body2,
@@ -265,11 +289,11 @@ fun SubjectDescription(classRoom: String, modifier: Modifier = Modifier) {
     Box {
         Text(
             modifier = modifier
-                .padding(start = 17.dp, bottom = 12.dp)
+                .padding(start = 17.dp, bottom = 10.dp)
                 .clickable { openClassroomURL(classRoom, ctx) },
-            color = BonchBlue,
+            color = MaterialTheme.colors.primaryVariant,
             text = stringResource(R.string.FIND_CLASSROOM),
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.Medium,
             style = MaterialTheme.typography.body2,
         )
     }

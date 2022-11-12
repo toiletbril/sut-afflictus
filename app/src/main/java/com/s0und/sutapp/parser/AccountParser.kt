@@ -6,7 +6,6 @@ import org.jsoup.Connection
 import org.jsoup.Jsoup
 import java.io.EOFException
 import java.io.IOException
-import java.io.StringReader
 
 private const val userAgent         = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36 OPR/89.0.4447.104 (Edition Yx GX)"
 
@@ -69,11 +68,12 @@ suspend fun getAccountData(username: String, password: String): Result<AccountDa
         val cookies = getLoginCookies(username, password)
 
         val accountInfo = getAccountInfo(cookies)
-        val messageList = parseMessages(cookies)
-        val groupFileList = parseGroupFiles(cookies)
-        val wifiDataPair = parseWifiPage(cookies)
-
-        Result.success(AccountData(accountInfo, messageList, groupFileList, wifiDataPair))
+//        val messageList = parseMessages(cookies)
+//        val groupFileList = parseGroupFiles(cookies)
+//        val wifiDataPair = parseWifiPage(cookies)
+//
+//        Result.success(AccountData(accountInfo, messageList, groupFileList, wifiDataPair))
+        Result.success(AccountData(accountInfo, emptyList(), emptyList(), Pair("", "")))
     } catch (e: IOException) { Result.failure(e) }
 }
 

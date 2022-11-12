@@ -15,9 +15,7 @@ import com.s0und.sutapp.ui.theme.BonchRed
 import com.s0und.sutapp.ui.theme.BonchYellow
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
-import java.time.LocalDate
-import java.time.LocalTime
-import java.time.YearMonth
+import java.time.*
 
 
 sealed class TimetableUIState {
@@ -48,17 +46,17 @@ class TimetableState(private val databaseState: DatabaseState, private val setti
     val mapOfDays: State<Map<String, List<UniSubject>>>
         get() = _mapOfDays
 
-    private var _group1 = mutableStateOf(listOf("", ""))
-    val group1 : State<List<String>>
-        get() = _group1
-
-    private var _group2 = mutableStateOf(listOf("", ""))
-    val group2 : State<List<String>>
-        get() = _group2
-
-    private var _group3 = mutableStateOf(listOf("", ""))
-    val group3 : State<List<String>>
-        get() = _group3
+//    private var _group1 = mutableStateOf(listOf("", ""))
+//    val group1 : State<List<String>>
+//        get() = _group1
+//
+//    private var _group2 = mutableStateOf(listOf("", ""))
+//    val group2 : State<List<String>>
+//        get() = _group2
+//
+//    private var _group3 = mutableStateOf(listOf("", ""))
+//    val group3 : State<List<String>>
+//        get() = _group3
 
     private val sharedPreferences = bgetEncryptedSharedPreferences(context)
 
@@ -115,6 +113,8 @@ class TimetableState(private val databaseState: DatabaseState, private val setti
         }
     }
 
+    //val checkedIn = mutableStateOf(false)
+
     @OptIn(ExperimentalMaterialApi::class)
     val bottomSheetState = mutableStateOf(ModalBottomSheetValue.Hidden)
 
@@ -134,6 +134,14 @@ class TimetableState(private val databaseState: DatabaseState, private val setti
 
     fun updateDate() {
         _currentDate.value = LocalDate.now()
+    }
+
+    private var _selectedDate = mutableStateOf(YearMonth.now())
+    val selectedDate: State<YearMonth>
+        get() = _selectedDate
+
+    fun changeSelectedDate(yearMonth: YearMonth) {
+        _selectedDate.value = yearMonth
     }
 
     private val _currentTime = mutableStateOf(LocalTime.now())
@@ -194,9 +202,9 @@ class TimetableState(private val databaseState: DatabaseState, private val setti
     val selectedGroupName: State<String>
         get() = _selectedGroupName
 
-    private val _errorMessage = mutableStateOf("")
-    val errorMessage: State<String>
-        get() = _errorMessage
+//    private val _errorMessage = mutableStateOf("")
+//    val errorMessage: State<String>
+//        get() = _errorMessage
 
     fun getPairColors(day: LocalDate = selectedDayDate.value, callback: (List<Color>) -> Unit) {
             viewModelScope.launch(Dispatchers.IO) {
@@ -240,7 +248,6 @@ class TimetableState(private val databaseState: DatabaseState, private val setti
                     getDay()
 
                 } else {
-                        _errorMessage.value = classes.exceptionOrNull()!!.toString()
                         _uiState.value = TimetableUIState.IsError
                     }
                 }

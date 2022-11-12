@@ -35,4 +35,5 @@
     <string name="WRONGPASSWORD">Wrong password.</string>
     <string name="LOGOUT">Log out</string>
     <string name="CHECKIN">Check in</string>
+    <string name="PAIRNOTSTARTED">The teacher has not started the class yet!</string>
 </resources>

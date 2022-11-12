@@ -4,12 +4,10 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -44,7 +42,7 @@ fun AccountOptions(viewModel: TimetableState, modifier: Modifier, ctx: Context) 
 @Composable
 private fun LoggedIn(viewModel: TimetableState, modifier: Modifier) {
 
-    var account = remember { mutableStateOf<AccountData?>(null) }
+    val account = remember { mutableStateOf<AccountData?>(null) }
 
     if (account.value == null)
         Loading(modifier = modifier.offset(y = 32.dp))
@@ -61,7 +59,7 @@ private fun LoggedIn(viewModel: TimetableState, modifier: Modifier) {
         Text(
             text = acc.accountInfo["name"]!!,
             style = MaterialTheme.typography.body1,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.Medium,
             color = MaterialTheme.colors.secondaryVariant,
             modifier = modifier.padding(top = 8.dp)
         )
@@ -69,11 +67,12 @@ private fun LoggedIn(viewModel: TimetableState, modifier: Modifier) {
         Text(
             text = acc.accountInfo["group"]!!,
             style = MaterialTheme.typography.body2,
+            fontWeight = FontWeight.Medium,
             color = MaterialTheme.colors.secondaryVariant,
             modifier = modifier.padding(top = 8.dp, bottom = 4.dp)
         )
 
-        Button(
+        OutlinedButton(
             onClick = {
                 viewModel.logOut()
             },
@@ -82,13 +81,14 @@ private fun LoggedIn(viewModel: TimetableState, modifier: Modifier) {
                 .height(64.dp)
                 .padding(horizontal = 32.dp, vertical = 12.dp),
             shape = CircleShape,
-            colors = ButtonDefaults.buttonColors(
-                backgroundColor = BonchBlue
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = BonchBlue
             )
         ) {
             Text(
                 text = stringResource(R.string.LOGOUT),
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colors.primaryVariant
             )
 
             //BottomSheetDrawer(viewModel, modifier, acc.messages)
@@ -104,9 +104,9 @@ fun LoginScreen(viewModel: TimetableState, modifier: Modifier, ctx: Context) {
     Text(
         text = stringResource(R.string.LOGIN),
         style = MaterialTheme.typography.body1,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.SemiBold,
         color = MaterialTheme.colors.secondaryVariant,
-        modifier = modifier.padding(top = 8.dp, bottom = 4.dp)
+        modifier = modifier.padding(top = 8.dp, bottom = 2.dp)
     )
 
     var loginValue by remember { mutableStateOf(TextFieldValue("")) }
@@ -122,7 +122,7 @@ fun LoginScreen(viewModel: TimetableState, modifier: Modifier, ctx: Context) {
             focusedLabelColor = MaterialTheme.colors.primaryVariant
         ),
         modifier = modifier
-            .width(280.dp),
+            .width(288.dp),
         value = loginValue,
         onValueChange = {newValue ->
             loginValue = newValue
@@ -138,6 +138,7 @@ fun LoginScreen(viewModel: TimetableState, modifier: Modifier, ctx: Context) {
         ),
         singleLine = true,
         textStyle = MaterialTheme.typography.body1,
+        shape = CircleShape
     )
 
     OutlinedTextField(
@@ -149,7 +150,7 @@ fun LoginScreen(viewModel: TimetableState, modifier: Modifier, ctx: Context) {
             focusedLabelColor = MaterialTheme.colors.primaryVariant
         ),
         modifier = modifier
-            .width(280.dp)
+            .width(288.dp)
             .padding(bottom = 2.dp),
         value = passwordValue,
         onValueChange = {newValue ->
@@ -162,12 +163,18 @@ fun LoginScreen(viewModel: TimetableState, modifier: Modifier, ctx: Context) {
         placeholder = { Text(stringResource(R.string.PASSWORDFIELD)) },
         singleLine = true,
         keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Text,
-            imeAction = ImeAction.None
+            keyboardType = KeyboardType.Ascii,
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions(
+            onDone = {
+                focusManager.clearFocus()
+            }
         ),
         textStyle = MaterialTheme.typography.body1,
-        visualTransformation = PasswordVisualTransformation()
-    )
+        visualTransformation = PasswordVisualTransformation(),
+        shape = CircleShape
+        )
 
 //    Row(
 //        modifier = modifier.padding(end = 16.dp)
@@ -184,11 +191,12 @@ fun LoginScreen(viewModel: TimetableState, modifier: Modifier, ctx: Context) {
 //            //fontWeight = FontWeight.SemiBold,
 //            modifier = modifier.padding(top = 10.dp)
 //        )
-//    }
+//
 
     Button(
         onClick = {
             viewModel.logIn(loginValue.text, passwordValue.text) {
+
                 if (it.isSuccess) {
                     viewModel.loggedIn.value = true
                 }
@@ -201,9 +209,9 @@ fun LoginScreen(viewModel: TimetableState, modifier: Modifier, ctx: Context) {
             }
         },
         modifier = modifier
-            .width(256.dp)
+            .width(264.dp)
             .height(64.dp)
-            .padding(horizontal = 32.dp, vertical = 12.dp),
+            .padding(horizontal = 32.dp, vertical = 10.dp),
         shape = RoundedCornerShape(32.dp),
         enabled = passwordValue.text.isNotEmpty() && loginValue.text.isNotEmpty(),
         colors = ButtonDefaults.buttonColors(
