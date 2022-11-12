@@ -4,8 +4,20 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import org.jsoup.Connection
 import org.jsoup.Jsoup
+import java.io.EOFException
+import java.io.IOException
 
-private const val userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36 OPR/89.0.4447.104 (Edition Yx GX)"
+private const val userAgent         = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36 OPR/89.0.4447.104 (Edition Yx GX)"
+
+private const val noLoginReferrer   = "https://lk.sut.ru/cabinet?login=no"
+private const val referrer          = "https://lk.sut.ru/cabinet/"
+
+private const val loginUrl          = "https://lk.sut.ru/cabinet/lib/autentificationok.php"
+private const val profileUrl        = "https://lk.sut.ru/cabinet/project/cabinet/forms/profil.php"
+private const val timetableUrl      = "https://lk.sut.ru/cabinet/project/cabinet/forms/raspisanie.php"
+private const val messagesUrl       = "https://lk.sut.ru/project/cabinet/forms/message.php"
+private const val filesUrl          = "https://lk.sut.ru/project/cabinet/forms/files_group_pr.php"
+private const val wifiUrl           = "https://lk.sut.ru/project/cabinet/forms/wifi.php"
 
 data class Message(
     val date: String,
@@ -15,46 +27,146 @@ data class Message(
     val content: String,
 )
 
-suspend fun getAccountData(username: String, password: String) {
-    val cookies = getLoginCookies(username, password)
+data class AccountData(
+    val accountInfo: Map<String, String>,
+    val messages: List<Message>,
+    val groupFiles: List<Message>,
+    val wifiCredentials: Pair<String, String>
+)
 
-    val wifiDataList = parseWifiPage(cookies)
-    val messageList = parseMessages(cookies)
-    val groupFileList = parseGroupFiles(cookies)
+/**
+ * @return [Boolean]
+ * if provided credentials are valid
+ * @throws IOException
+ * when there is some problem with internet connection or site
+ */
+suspend fun checkCredentials(username: String, password: String): Result<Boolean> {
+    return try {
+        val cookies = Jsoup.connect(noLoginReferrer).execute().cookies()
+
+        val page = Jsoup.connect(loginUrl)
+            .header("user-agent", userAgent)
+            .data("users", username)
+            .data("parole", password)
+            .cookies(cookies)
+            .method(Connection.Method.POST)
+            .execute()
+
+        Result.success(page.body() == "1")
+    } catch (e: IOException) {
+        Result.failure(e)
+    }
 }
 
+/**
+ * @return [AccountData] for provided credentials
+ * @throws IOException
+ * when there is some problem with internet connection or site
+ */
+suspend fun getAccountData(username: String, password: String): Result<AccountData> {
+    return try {
+        val cookies = getLoginCookies(username, password)
+
+        val accountInfo = getAccountInfo(cookies)
+//        val messageList = parseMessages(cookies)
+//        val groupFileList = parseGroupFiles(cookies)
+//        val wifiDataPair = parseWifiPage(cookies)
+//
+//        Result.success(AccountData(accountInfo, messageList, groupFileList, wifiDataPair))
+        Result.success(AccountData(accountInfo, emptyList(), emptyList(), Pair("", "")))
+    } catch (e: IOException) { Result.failure(e) }
+}
+
+/**
+ * @return [Result.success] ([Unit])
+ * when successfully checked in, or [Result.failure] ([Throwable])
+ * @throws Throwable `NO_PAIR_BUTTON_AVAILABLE`
+ * when there is no pairs that you can click on (to refresh or whatever)
+ * @throws Throwable `CURRENT_PAIR_BUTTON_UNAVAILABLE`
+ * when there is currently a pair going on and the teacher haven't started it yet
+ * @throws IOException
+ * when there is some problem with internet connection or site
+ */
+suspend fun checkInCurrentPair(username: String, password: String): Result<Unit> {
+    try {
+        val cookies = getLoginCookies(username, password)
+
+        val page = Jsoup.connect(timetableUrl)
+                .header("user-agent", userAgent)
+                .cookies(cookies)
+                .get()
+                .body()
+
+        val checkInButtons = page.select("[id^=knop]")
+        val week = page.select("h3")[0].text().substring(30, 32)
+
+        for (i in checkInButtons) {
+            val id = i.attr("id").replace("knop", "")
+            val buttonMessage = i.child(0)
+
+            if (buttonMessage.text().lowercase() == "начать занятие")
+                return checkInPair(id, week, cookies)
+            else
+            if (buttonMessage.attr("style") == "color: gray;")
+                return Result.failure(Throwable("CURRENT_PAIR_BUTTON_UNAVAILABLE"))
+        }
+        return Result.failure(Throwable("NO_PAIR_BUTTON_AVAILABLE"))
+    } catch (e: IOException) { return Result.failure(e) }
+}
+
+/**
+ * @return logged in cookies as [Map]
+ */
 private fun getLoginCookies(username: String, password: String): Map<String, String> {
-
-    val referrer = "https://lk.sut.ru/cabinet/"
-    val loginUrl = "https://lk.sut.ru/cabinet/lib/autentificationok.php"
-
-    val retrievedSiteCookies = Jsoup.connect("$referrer?login=no").execute().cookies()
+    val cookies = Jsoup.connect(noLoginReferrer).execute().cookies()
 
     Jsoup.connect(loginUrl)
         .header("user-agent", userAgent)
         .data("users", username)
         .data("parole", password)
-        .cookies(retrievedSiteCookies)
+        .cookies(cookies)
         .method(Connection.Method.POST)
         .execute()
 
     Jsoup.connect(referrer)
         .header("user-agent", userAgent)
-        .cookies(retrievedSiteCookies)
+        .cookies(cookies)
         .get()
     /*
-    Just loading home page of personal account.
-    This adds "LINK_URL" property to site's php code,
+    this loads home page of personal account.
+    it adds "LINK_URL" property to site's php code,
     or else parsing messages or files will throw internal error
      */
 
-    return retrievedSiteCookies
+    return cookies
 }
 
+private fun checkInPair(id: String, week: String, cookies: Map<String, String>): Result<Unit> {
+    val response = try {
+        Jsoup.connect(timetableUrl)
+            .header("user-agent", userAgent)
+            .data("open", "1")
+            .data("rasp", id)
+            .data("week", week)
+            .cookies(cookies)
+            .method(Connection.Method.POST)
+            .execute()
+            .body()
+    } catch (e: EOFException) { return Result.failure(e) }
+
+    val json = Json.parseToJsonElement(response)
+    val state = json.jsonObject.getOrDefault("data", "").toString()
+
+    return if (state != "\"\"")
+        Result.success(Unit)
+    else
+        Result.failure(Throwable("CURRENT_PAIR_BUTTON_UNAVAILABLE"))
+}
+
+/**
+ * @return [List]<[Message]>
+ */
 private fun parseMessages(cookies: Map<String, String>): List<Message> {
-
-    val messagesUrl = "https://lk.sut.ru/project/cabinet/forms/message.php"
-
     val page = Jsoup.connect(messagesUrl)
         .header("user-agent", userAgent)
         .cookies(cookies)
@@ -110,8 +222,6 @@ private fun parseMessages(cookies: Map<String, String>): List<Message> {
 }
 
 private fun expandMessage(ID: String, cookies: Map<String, String>, callback: (String) -> Unit) {
-
-    val messagesUrl = "https://lk.sut.ru/cabinet/project/cabinet/forms/sendto2.php"
     val response = Jsoup.connect(messagesUrl)
         .cookies(cookies)
         .data("id", ID)
@@ -127,25 +237,10 @@ private fun expandMessage(ID: String, cookies: Map<String, String>, callback: (S
     callback.invoke(readyText)
 }
 
-private fun parseWifiPage(cookies: Map<String, String>): List<String> {
-
-    val wifiUrl = "https://lk.sut.ru/project/cabinet/forms/wifi.php"
-
-    val page = Jsoup.connect(wifiUrl)
-        .header("user-agent", userAgent)
-        .cookies(cookies)
-        .get().body()
-
-    val wifiLogin = page.select("p")[4].child(0).text()
-    val wifiPassword = page.select("p")[3].child(0).text()
-
-    return listOf(wifiLogin, wifiPassword)
-}
-
+/**
+ * @return [List]<[Message]>
+ */
 private fun parseGroupFiles(cookies: Map<String, String>): List<Message> {
-
-    val filesUrl = "https://lk.sut.ru/project/cabinet/forms/files_group_pr.php"
-
     val page = Jsoup.connect(filesUrl)
         .header("user-agent", userAgent)
         .cookies(cookies)
@@ -190,3 +285,31 @@ private fun parseGroupFiles(cookies: Map<String, String>): List<Message> {
     return filesList
 }
 
+/**
+ * @return[Pair] (Name, Password)
+ */
+private fun parseWifiPage(cookies: Map<String, String>): Pair<String, String> {
+    val page = Jsoup.connect(wifiUrl)
+        .header("user-agent", userAgent)
+        .cookies(cookies)
+        .get().body()
+
+    val wifiLogin = page.select("p")[4].child(0).text()
+    val wifiPassword = page.select("p")[3].child(0).text()
+
+    return Pair(wifiLogin, wifiPassword)
+}
+
+private fun getAccountInfo(cookies: Map<String, String>): Map<String, String> {
+    val page = Jsoup.connect(profileUrl)
+        .header("user-agent", userAgent)
+        .cookies(cookies)
+        .get().body()
+
+    val tableOne = page.select(".profil")[0]
+    val name = tableOne.select("tr")[1].child(1).text()
+    val tableTwo = page.select(".profil")[1]
+    val groupName = tableTwo.select("tr")[6].child(1).text()
+
+    return mapOf(Pair("name", name), Pair("group", groupName))
+}

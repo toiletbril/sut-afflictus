@@ -10,7 +10,7 @@ data class UniGroup(
     val ID: String,
 )
 
-suspend fun bgetGroups(callback: (Result<List<UniGroup>>) -> Unit) {
+suspend fun getGroups(callback: (Result<List<UniGroup>>) -> Unit) {
     coroutineScope {
         val request = requestFulltimeGroups()
 

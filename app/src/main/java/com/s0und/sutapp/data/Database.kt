@@ -7,7 +7,6 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.s0und.sutapp.*
 
-
 @TypeConverters(Converters::class)
 @Database(entities = [UniDay::class], version = 1, exportSchema = false)
 abstract class AppDatabase: RoomDatabase() {
@@ -46,7 +45,7 @@ class DayRepository(private val uniDayDao: UniDayDao) {
         uniDayDao.addDay(day)
     }
 
-    fun readDay(Id: String): UniDay {
+    fun readDay(Id: String): UniDay? {
         return uniDayDao.readDay(Id)
     }
 

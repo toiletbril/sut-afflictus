@@ -23,7 +23,7 @@ suspend fun getClassesForSemester(
     databaseState: DatabaseState
 ): Result<Unit> {
 
-    val request = requestWeekTimetable(groupID)
+    val request = requestSemesterTimetable(groupID)
 
     return if (request.isSuccess) {
         val page = request.getOrNull()!!
@@ -163,7 +163,7 @@ private fun parseClassesSchedule(page: Element): List<UniClass> {
     return pairList.toList()
 }
 
-private fun requestWeekTimetable(groupID: String): Result<Element> {
+private fun requestSemesterTimetable(groupID: String): Result<Element> {
     val nURL = "https://cabinet.sut.ru/raspisanie_all_new"
     val mURL = "$nURL?group=$groupID"
     return try {

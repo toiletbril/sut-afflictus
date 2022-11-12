@@ -22,6 +22,16 @@
     <string name="SETTINGS">Настройки</string>
     <string name="CHANGE_GROUP">сменить группу</string>
     <string name="ABOUTAPP">О программе</string>
-    <string name="ADDGROUP">Добавить новую группу</string>
+    <string name="ADDGROUP">Добавить группу</string>
     <string name="WIP">Здесь пока ничего нет</string>
+    <string name="ACCOUNT">Аккаунт</string>
+    <string name="LOGIN">Войти в аккаунт</string>
+    <string name="REMEMBERME">Запомнить пароль</string>
+    <string name="ROOTWARNING">TODO</string>
+    <string name="PASSWORD">пароль</string>
+    <string name="LOGGEDIN">Вы вошли в аккаунт.</string>
+    <string name="WRONGPASSWORD">Неправильный пароль.</string>
+    <string name="LOGOUT">Выйти</string>
+    <string name="CHECKIN">Отметиться</string>
+    <string name="PAIRNOTSTARTED">Учитель еще не начал пару!</string>
 </resources>

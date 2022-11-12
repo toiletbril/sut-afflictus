@@ -1,5 +1,6 @@
 package com.s0und.sutapp.states
 
+import android.content.Context
 import androidx.compose.material.*
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -8,16 +9,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kizitonwose.calendar.core.atStartOfMonth
 import com.s0und.sutapp.data.*
-import com.s0und.sutapp.parser.UniSubject
-import com.s0und.sutapp.parser.getClassesForSemester
+import com.s0und.sutapp.parser.*
 import com.s0und.sutapp.ui.theme.BonchOrange
 import com.s0und.sutapp.ui.theme.BonchRed
 import com.s0und.sutapp.ui.theme.BonchYellow
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
-import java.time.LocalDate
-import java.time.LocalTime
-import java.time.YearMonth
+import java.time.*
 
 
 sealed class TimetableUIState {
@@ -27,12 +25,14 @@ sealed class TimetableUIState {
     object IsError: TimetableUIState()
 }
 
-class TimetableState(private val databaseState: DatabaseState, private val settingsManager: SettingsManager): ViewModel() {
+class TimetableState(private val databaseState: DatabaseState, private val settingsManager: SettingsManager, context: Context): ViewModel() {
     private val _uiState = mutableStateOf<TimetableUIState>(TimetableUIState.NotLoaded)
     val uiState: State<TimetableUIState>
         get() = _uiState
 
     val drawerState = mutableStateOf(DrawerState(DrawerValue.Closed))
+
+    val loggedIn = mutableStateOf(false)
 
     private val _uiTheme = mutableStateOf(0)
     val uiTheme: State<Int>
@@ -46,21 +46,83 @@ class TimetableState(private val databaseState: DatabaseState, private val setti
     val mapOfDays: State<Map<String, List<UniSubject>>>
         get() = _mapOfDays
 
-    private var _group1 = mutableStateOf(listOf("", ""))
-    val group1 : State<List<String>>
-        get() = _group1
+//    private var _group1 = mutableStateOf(listOf("", ""))
+//    val group1 : State<List<String>>
+//        get() = _group1
+//
+//    private var _group2 = mutableStateOf(listOf("", ""))
+//    val group2 : State<List<String>>
+//        get() = _group2
+//
+//    private var _group3 = mutableStateOf(listOf("", ""))
+//    val group3 : State<List<String>>
+//        get() = _group3
 
-    private var _group2 = mutableStateOf(listOf("", ""))
-    val group2 : State<List<String>>
-        get() = _group2
+    private val sharedPreferences = bgetEncryptedSharedPreferences(context)
 
-    private var _group3 = mutableStateOf(listOf("", ""))
-    val group3 : State<List<String>>
-        get() = _group3
+    fun logIn(login: String, password: String, callback: (Result<Unit>) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val check = checkCredentials(login, password)
 
-    val a = group1.value
+            if (check.isSuccess)
+                if (check.getOrNull()!!) {
+                    sharedPreferences.edit()
+                        .putString("login", login)
+                        .putString("pswd", password)
+                        .apply()
+                    callback.invoke(Result.success(Unit))
+                } else
+                    callback.invoke(Result.failure(Throwable("WRONG_PASSWORD")))
 
-    fun convertDatabaseToMap() {
+            else callback.invoke(Result.failure(check.exceptionOrNull()!!))
+        }
+    }
+
+    fun logOut() {
+        if (loggedIn.value)
+            viewModelScope.launch(Dispatchers.IO) {
+                sharedPreferences.edit()
+                    .clear()
+                    .apply()
+                loggedIn.value = false
+            }
+    }
+
+    fun getSharedPreferences(callback: (Pair<String, String>) -> (Unit)) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val one = sharedPreferences.getString("login", "0")
+            val two = sharedPreferences.getString("pswd", "0")
+
+            callback.invoke(Pair(one!!, two!!))
+        }
+    }
+
+    fun getAccount(callback: (Result<AccountData>) -> (Unit)) {
+        getSharedPreferences {
+            viewModelScope.launch(Dispatchers.IO) {
+                callback.invoke(getAccountData(it.first, it.second))
+            }
+        }
+    }
+
+    fun checkIn(callback: (Result<Unit>) -> (Unit)) {
+        getSharedPreferences {
+            viewModelScope.launch(Dispatchers.IO) {
+                callback.invoke(checkInCurrentPair(it.first, it.second))
+            }
+        }
+    }
+
+    //val checkedIn = mutableStateOf(false)
+
+    @OptIn(ExperimentalMaterialApi::class)
+    val bottomSheetState = mutableStateOf(ModalBottomSheetValue.Hidden)
+
+    suspend fun convertDatabaseToMap() {
+        _mapOfDays.value = databaseState.readAllData(selectedGroupID.value)
+    }
+
+    fun convertDatabaseToMapCompose() {
         viewModelScope.launch(Dispatchers.IO) {
             _mapOfDays.value = databaseState.readAllData(selectedGroupID.value)
         }
@@ -72,6 +134,14 @@ class TimetableState(private val databaseState: DatabaseState, private val setti
 
     fun updateDate() {
         _currentDate.value = LocalDate.now()
+    }
+
+    private var _selectedDate = mutableStateOf(YearMonth.now())
+    val selectedDate: State<YearMonth>
+        get() = _selectedDate
+
+    fun changeSelectedDate(yearMonth: YearMonth) {
+        _selectedDate.value = yearMonth
     }
 
     private val _currentTime = mutableStateOf(LocalTime.now())
@@ -132,11 +202,11 @@ class TimetableState(private val databaseState: DatabaseState, private val setti
     val selectedGroupName: State<String>
         get() = _selectedGroupName
 
-    private val _errorMessage = mutableStateOf("")
-    val errorMessage: State<String>
-        get() = _errorMessage
+//    private val _errorMessage = mutableStateOf("")
+//    val errorMessage: State<String>
+//        get() = _errorMessage
 
-    fun getPairColors(day: LocalDate, callback: (List<Color>) -> Unit) {
+    fun getPairColors(day: LocalDate = selectedDayDate.value, callback: (List<Color>) -> Unit) {
             viewModelScope.launch(Dispatchers.IO) {
 
                 val id = "${selectedGroupID.value}$day"
@@ -166,12 +236,7 @@ class TimetableState(private val databaseState: DatabaseState, private val setti
     }
 
     fun forceUpdate(groupID: String = selectedGroupID.value) {
-
         viewModelScope.launch(Dispatchers.IO) {
-
-            updateDate()
-            updateTime()
-
             if (uiState.value != TimetableUIState.IsLoading) {
                 _uiState.value = TimetableUIState.IsLoading
 
@@ -183,11 +248,12 @@ class TimetableState(private val databaseState: DatabaseState, private val setti
                     getDay()
 
                 } else {
-                        _errorMessage.value = classes.exceptionOrNull()!!.toString()
                         _uiState.value = TimetableUIState.IsError
                     }
                 }
             }
+        updateDate()
+        updateTime()
         }
 
 
@@ -201,17 +267,13 @@ class TimetableState(private val databaseState: DatabaseState, private val setti
 
             val readDay = mapOfDays.value[dayID]
 
-            if (readDay != null)
-                if (readDay.isNotEmpty()) {
-                    _classesForDay.value = UniDay(dayID, readDay)
-                } else {
-                    val emptyDay = UniDay(dayID, emptyList())
-                    databaseState.addDay(emptyDay)
-                    _classesForDay.value = emptyDay
-                }
+            if (readDay != null) {
+                println("founds !!!!")
+                _classesForDay.value = UniDay(dayID, readDay)
+            }
             else {
+                println("emty !!!!")
                 val emptyDay = UniDay(dayID, emptyList())
-                databaseState.addDay(emptyDay)
                 _classesForDay.value = emptyDay
             }
             _uiState.value = TimetableUIState.ContentIsLoaded

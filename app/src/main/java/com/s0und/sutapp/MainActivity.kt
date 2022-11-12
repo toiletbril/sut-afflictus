@@ -19,13 +19,11 @@ import com.s0und.sutapp.ui.theme.*
 import com.s0und.sutapp.ui.timetableScreen.TimetableScreen
 import kotlinx.coroutines.flow.first
 
-
 /***
 TODO:
  1. Optimize month view more
  2. Navigation using destinations
  other:
- lk?
  teacher's timetable?
 ***/
 
@@ -37,10 +35,6 @@ class MainActivity: ComponentActivity() {
     private lateinit var _broadcastReceiver: BroadcastReceiver
 
     override fun onStart() {
-        settingsManager = SettingsManager(application)
-        databaseState = DatabaseState(application)
-        timetableState = TimetableState(databaseState, settingsManager)
-
         _broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(ctx: Context?, intent: Intent) {
                 if (intent.action!!.compareTo(Intent.ACTION_TIME_TICK) == 0) {
@@ -63,6 +57,10 @@ class MainActivity: ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
+        settingsManager = SettingsManager(application)
+        databaseState = DatabaseState(application)
+        timetableState = TimetableState(databaseState, settingsManager, application)
+
         super.onCreate(savedInstanceState)
 
         setContent {
@@ -79,8 +77,14 @@ class MainActivity: ComponentActivity() {
                         val groupID = settingsManager.groupIDFlow.first()
                         val groupName = settingsManager.groupNameFlow.first()
 
-                        timetableState.convertDatabaseToMap()
+                        timetableState.getSharedPreferences {
+                            if (it.first != "0") {
+                                timetableState.loggedIn.value = true
+                            }
+                        }
+
                         timetableState.changeGroup(groupID, groupName)
+                        timetableState.convertDatabaseToMapCompose()
 
                         initialized = 1
                     } else
@@ -88,7 +92,7 @@ class MainActivity: ComponentActivity() {
                 }
 
                 when (initialized) {
-                    -1 -> InitLoading()
+                    -1 -> InitScreenLoading()
                     0 -> InitScreen(InitState(settingsManager), timetableState)
                     1 -> TimetableScreen(timetableState)
                 }
@@ -98,7 +102,9 @@ class MainActivity: ComponentActivity() {
 
     @Suppress("Senseless_Comparison")
     override fun onStop() {
-        if (_broadcastReceiver != null) unregisterReceiver(_broadcastReceiver)
+        if (_broadcastReceiver != null)
+            unregisterReceiver(_broadcastReceiver)
+
         super.onStop()
     }
 }

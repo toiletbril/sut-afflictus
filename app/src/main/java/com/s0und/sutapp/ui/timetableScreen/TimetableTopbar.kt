@@ -62,11 +62,14 @@ fun TimetableTop(viewModel: TimetableState, modifier: Modifier) {
             Spacer(modifier.weight(1f))
             TimetableSettingsIconButton(viewModel, modifier)
         }
+        SelectedMonthTitle(viewModel.selectedDate.value)
+
         when (viewModel.selectorState.value) {
-            true -> MonthlySelector(viewModel, modifier)
-            false -> WeeklySelector(viewModel, modifier)
+            true -> MonthlySelector(viewModel)
+            false -> WeeklySelector(viewModel)
         }
-        SelectedWeekTitle(viewModel, viewModel.startDate, modifier)
+
+        SelectedWeekTitle(viewModel, viewModel.startDate)
     } }
 
 @Composable
@@ -84,9 +87,10 @@ fun TimetableSettingsIconButton(viewModel: TimetableState, modifier: Modifier = 
 }
 
 @Composable
-fun PairCountIndicatorRow(day: LocalDate, viewModel: TimetableState, modifier: Modifier) {
+fun PairCountIndicatorRow(day: LocalDate, viewModel: TimetableState) {
+
     Row(
-        modifier = modifier
+        modifier = Modifier
             .offset(y = (-16).dp)
             .requiredHeight(6.dp)
             .requiredWidthIn(6.dp, 30.dp)
@@ -94,21 +98,24 @@ fun PairCountIndicatorRow(day: LocalDate, viewModel: TimetableState, modifier: M
 
         var colors by remember { mutableStateOf(listOf<Color>()) }
 
-        LaunchedEffect(Unit) {
+        LaunchedEffect(viewModel.mapOfDays.value) {
             viewModel.getPairColors(day) {
                 colors = it
             }
         }
-        if (colors.isNotEmpty()) for (i in colors) {
-                PairCountIndicator(i, modifier)
+
+        if (colors.isNotEmpty())
+            for (i in colors) {
+                PairCountIndicator(i)
             }
+
     }
 }
 
 @Composable
-fun PairCountIndicator(color: Color, modifier: Modifier) {
+fun PairCountIndicator(color: Color) {
     Box(
-        modifier = modifier
+        modifier = Modifier
             .clip(CircleShape)
             .size(6.dp)
             .background(color)
@@ -117,24 +124,26 @@ fun PairCountIndicator(color: Color, modifier: Modifier) {
 }
 
 @Composable
-fun SelectedMonthTitle(month: YearMonth, modifier: Modifier) {
+fun SelectedMonthTitle(month: YearMonth) {
     val selectedMonth = month.month.getDisplayName(TextStyle.FULL_STANDALONE, Locale.getDefault())
-    Row(modifier = modifier.padding(bottom = 8.dp)) {
+    Row(modifier = Modifier.padding(bottom = 8.dp)) {
         Text(
             text = selectedMonth.lowercase(),
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.body2,
+            fontWeight = FontWeight.Medium,
         )
     }
 }
 
 @Composable
-fun SelectedWeekTitle(viewModel: TimetableState, startDate: LocalDate, modifier: Modifier) {
+fun SelectedWeekTitle(viewModel: TimetableState, startDate: LocalDate) {
     val dayDate = viewModel.selectedDayDate.value
     val weekNumber = (dayDate.dayOfYear + 7 - (startDate.dayOfYear - startDate.dayOfWeek.value + 1)).floorDiv(7)
     val weekDaysTitle = getFormattedWeek(dayDate)
     Text(
-        modifier = modifier.padding(bottom = 4.dp, top = 0.dp),
+        modifier = Modifier.padding(bottom = 4.dp, top = 0.dp),
         text = "$weekNumber${stringResource(R.string.TH)} ${stringResource(R.string.WEEK)} ${stringResource(R.string.FROM)} $weekDaysTitle",
-        fontWeight = FontWeight.SemiBold
+        style = MaterialTheme.typography.body2,
+        fontWeight = FontWeight.Medium
     )
 }

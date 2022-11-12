@@ -30,7 +30,6 @@ import com.s0und.sutapp.states.TimetableState
 import com.s0und.sutapp.ui.theme.BonchBlue
 import com.s0und.sutapp.ui.theme.SlightBonchBlue
 import com.s0und.sutapp.ui.timetableScreen.PairCountIndicatorRow
-import com.s0und.sutapp.ui.timetableScreen.SelectedMonthTitle
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -38,7 +37,7 @@ import java.time.format.TextStyle
 import java.util.*
 
 @Composable
-fun WeeklySelector(viewModel: TimetableState, modifier: Modifier) {
+fun WeeklySelector(viewModel: TimetableState) {
 
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
@@ -54,21 +53,18 @@ fun WeeklySelector(viewModel: TimetableState, modifier: Modifier) {
         firstDayOfWeek = firstDayOfWeek
     )
 
-    SelectedMonthTitle(remember { derivedStateOf {YearMonth.from(state.firstVisibleWeek.days[6].date)} }.value, modifier)
+    LaunchedEffect(state.firstVisibleWeek) {
+        viewModel.changeSelectedDate(YearMonth.from(state.firstVisibleWeek.days[6].date))
+    }
 
     WeekCalendar(
-        modifier = modifier,
         calendarScrollPaged = false,
         state = state,
         dayContent = { day ->
             WeeklySelectorDay(day,
-                today = day.date == viewModel.currentDate.value,
-                selected = day.date == viewModel.selectedDayDate.value,
-                inactive = day.position == WeekDayPosition.OutDate || day.position == WeekDayPosition.InDate,
                 screenWidth,
                 noRipple,
-                viewModel,
-                modifier
+                viewModel
             ) {
                 viewModel.changeSelectedDay(it)
             }
@@ -76,11 +72,20 @@ fun WeeklySelector(viewModel: TimetableState, modifier: Modifier) {
 }
 
 @Composable
-private fun WeeklySelectorDay(day: WeekDay, today: Boolean, selected: Boolean, inactive: Boolean, screenWidth: Dp, noRipple: NoRippleInteractionSource , viewModel: TimetableState, modifier: Modifier, click: (LocalDate) -> Unit) {
+private fun WeeklySelectorDay(
+    day: WeekDay,
+    screenWidth: Dp,
+    noRipple: NoRippleInteractionSource,
+    viewModel: TimetableState,
+    click: (LocalDate) -> Unit) {
+
+    val today by remember { derivedStateOf { day.date == viewModel.currentDate.value } }
+    val selected by remember { derivedStateOf { day.date == viewModel.selectedDayDate.value } }
+
+    val inactive = day.position == WeekDayPosition.OutDate || day.position == WeekDayPosition.InDate
 
     val colors = MaterialTheme.colors
-
-    val colorAnimation = animateColorAsState(
+    val colorAnimation by animateColorAsState(
         if (!selected) colors.background else SlightBonchBlue,
         tween(100, 0, LinearEasing)
     )
@@ -92,33 +97,33 @@ private fun WeeklySelectorDay(day: WeekDay, today: Boolean, selected: Boolean, i
         Text(
             textAlign = TextAlign.Center,
             color = MaterialTheme.colors.secondaryVariant,
-            fontWeight = FontWeight.Bold,
-            text = day.date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
+            fontWeight = FontWeight.Medium,
+            text = day.date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()).lowercase(),
         )
             Button(
                 onClick = { click(day.date) },
                 colors = ButtonDefaults
                     .buttonColors(
                         contentColor = colors.onSurface,
-                        backgroundColor = colorAnimation.value,
+                        backgroundColor = colorAnimation,
                         disabledContentColor = colors.primary,
-                        disabledBackgroundColor = colorAnimation.value
+                        disabledBackgroundColor = colorAnimation
                     ),
                 elevation = ButtonDefaults.elevation(0.dp),
                 border = BorderStroke(4.dp, if (today) BonchBlue else Color.Transparent),
                 shape = CircleShape,
-                enabled = if (inactive) false else !selected, //&& !isSunday,
+                enabled = if (inactive) false else !selected,
                 interactionSource = noRipple,
-                modifier = modifier
+                modifier = Modifier
                     .size(58.dp)
                     .width(screenWidth / 9)
             ) {
                 Text(
                     text = day.date.dayOfMonth.toString(),
                     color = if (inactive) colors.secondaryVariant else if (selected) colors.surface else colors.onSurface,
-                    fontWeight = if (inactive) FontWeight.Normal else FontWeight.ExtraBold,
+                    fontWeight = if (inactive) FontWeight.Normal else FontWeight.Bold,
                 )
             }
-        if (!inactive) PairCountIndicatorRow(day.date, viewModel, modifier)
+        if (!inactive) PairCountIndicatorRow(day.date, viewModel)
     }
 }

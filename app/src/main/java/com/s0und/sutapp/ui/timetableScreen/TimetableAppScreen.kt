@@ -25,6 +25,7 @@ import com.s0und.sutapp.R
 import com.s0und.sutapp.states.TimetableState
 import com.s0und.sutapp.states.TimetableUIState
 import com.s0und.sutapp.ui.theme.*
+import com.s0und.sutapp.ui.timetableScreen.drawer.TimetableDrawer
 import java.util.*
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -64,7 +65,7 @@ fun TimetableScreen(
                         SubjectList(selectedDay.subjects, viewModel, modifier)
                     }
                     TimetableUIState.IsError -> {
-                        TimetableError()
+                        ShowToast("${stringResource(R.string.ERROR)}:\n${stringResource(R.string.NO_INTERNET)}")
                         viewModel.getDay()
                     }
                 }
@@ -88,8 +89,8 @@ fun NoPairsToday(modifier: Modifier) {
         } } } }
 
 @Composable
-fun TimetableError() {
-    val text = "${stringResource(R.string.ERROR)}:\n${stringResource(R.string.NO_INTERNET)}"
+fun ShowToast(text: String) {
+    val text = text
     Toast.makeText(LocalContext.current, text, Toast.LENGTH_LONG).show()
 }
 

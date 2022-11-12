@@ -34,13 +34,12 @@ fun InitScreen (
         when (viewModel.uiState.value) {
             InitUIState.NotLoaded -> viewModel.getGroups()
             InitUIState.IsLoading -> {
-                InitLoading(modifier)
+                InitScreenLoading(modifier)
             }
             InitUIState.ContentIsLoaded -> {
                 GroupPicker(viewModel, modifier)
             }
             InitUIState.GroupPicked -> {
-                viewModel.changeState(InitUIState.NotLoaded)
                 timetableState.loadTimetable()
             }
             InitUIState.IsError -> {
@@ -85,7 +84,7 @@ fun GroupPicker(viewModel: InitState, modifier: Modifier) {
                 modifier = modifier.padding(start = 8.dp, end = 8.dp, top = 4.dp),
                 text = stringResource(R.string.CHOOSEYOURGROUP),
                 style = MaterialTheme.typography.body1,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colors.secondaryVariant
             )
@@ -145,7 +144,7 @@ fun CheckIcon(viewModel: InitState, modifier: Modifier) {
 }
 
 @Composable
-fun InitLoading(modifier: Modifier = Modifier) {
+fun InitScreenLoading(modifier: Modifier = Modifier) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
@@ -154,13 +153,17 @@ fun InitLoading(modifier: Modifier = Modifier) {
             .fillMaxWidth()
             .background(MaterialTheme.colors.background),
     ) {
-                CircularProgressIndicator(modifier = modifier
-                    .size(50.dp),
-                    color = SlightBonchBlue,
-                    strokeWidth = 4.dp)
+                Loading()
     }
 }
 
+@Composable
+fun Loading(modifier: Modifier = Modifier) {
+    CircularProgressIndicator(modifier = modifier
+        .size(50.dp),
+        color = SlightBonchBlue,
+        strokeWidth = 4.dp)
+}
 
 @Composable
 fun InitErrorText(errorMsg: String, viewModel: InitState, modifier: Modifier) {
