@@ -1,3 +1,12 @@
+> If you cringe at your old code, you're improving!
+
+### Приложение больше не работает. 
+
+- Если приложение будет обновлено, то большую часть интерфейса предстоит переписать :3
+- Парсеры сайта находятся [здесь](app/src/main/java/com/s0und/sutapp/parser) и до сих пор работают, если в [ссылке](app/src/main/java/com/s0und/sutapp/parser/TimetableParser.kt#L168) явно указывать правильное время начала для семестров.
+
+---
+
 # SUT Afflictus
 
 <img src="https://i.imgur.com/h98Z0Mh.png" width="120" align="center"/>
